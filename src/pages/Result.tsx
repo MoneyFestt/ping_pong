@@ -1,13 +1,14 @@
-
-import { useNavigate, Link } from "react-router-dom";
+import React from "react";
+import { useNavigate } from "react-router-dom";
 import styles from "../styles/MenuResult.module.css";
 import { useSelector, useDispatch } from "react-redux";
 import { resetScore } from "../features/score/scoreSlice";
+import { RootState } from "../store"; // не забудь імпорт, якщо ще не є
 
-function Result() {
+const Result: React.FC = () => {
   const navigate = useNavigate();
-  const score = useSelector((state) => state.score);
   const dispatch = useDispatch();
+  const score = useSelector((state: RootState) => state.score);
 
   const handleRestart = () => {
     dispatch(resetScore());
@@ -24,6 +25,6 @@ function Result() {
       </button>
     </div>
   );
-}
+};
 
 export default Result;

@@ -1,7 +1,14 @@
 import React from "react";
 import styles from "../styles/Ball.module.css";
 
-function Ball({ position }) {
+type Props = {
+  position: {
+    x: number;
+    y: number;
+  };
+};
+
+const Ball: React.FC<Props> = ({ position }) => {
   return (
     <div
       className={styles.ball}
@@ -11,6 +18,6 @@ function Ball({ position }) {
       }}
     />
   );
-}
+};
 
 export default Ball;

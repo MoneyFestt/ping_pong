@@ -1,11 +1,16 @@
 import { createSlice } from "@reduxjs/toolkit";
 
-const initialState = {
+interface ScoreState {
+  player: number;
+  ai: number;
+}
+
+const initialState: ScoreState = {
   player: 0,
   ai: 0,
 };
 
-export const scoreSlice = createSlice({
+const scoreSlice = createSlice({
   name: "score",
   initialState,
   reducers: {

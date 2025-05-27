@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Paddle from "../components/Paddle";
 import Ball from "../components/Ball";
 import Score from "../components/Score";
@@ -6,30 +6,35 @@ import styles from "../styles/App.module.css";
 import { useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { incrementPlayer, incrementAI } from "../features/score/scoreSlice";
+import { RootState } from "../store";
 
-function Game() {
-  const [keyPressed, setKeyPressed] = useState({ up: false, down: false });
+type Position = { x: number; y: number };
+
+const Game: React.FC = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const score = useSelector((state) => state.score);
-  const playerName = useSelector((state) => state.player.name);
 
-  const playerPosRef = useRef(200);
-  const aiPosRef = useRef(200);
-  const ballPosRef = useRef({ x: 300, y: 200 });
-  const ballSpeedRef = useRef({ dx: 3, dy: 3 });
-  const animationRef = useRef();
+  const score = useSelector((state: RootState) => state.score);
+  const playerName = useSelector((state: RootState) => state.player.name);
 
-  // клавіші
+  const keyPressedRef = useRef<{ up: boolean; down: boolean }>({ up: false, down: false });
+  const playerPosRef = useRef<number>(200);
+  const aiPosRef = useRef<number>(200);
+  const ballPosRef = useRef<Position>({ x: 300, y: 200 });
+  const ballSpeedRef = useRef<{ dx: number; dy: number }>({ dx: 3, dy: 3 });
+  const animationRef = useRef<number | null>(null);
+
+  // Обробка клавіш
   useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.key === "ArrowUp") setKeyPressed((prev) => ({ ...prev, up: true }));
-      if (e.key === "ArrowDown") setKeyPressed((prev) => ({ ...prev, down: true }));
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "ArrowUp") keyPressedRef.current.up = true;
+      if (e.key === "ArrowDown") keyPressedRef.current.down = true;
     };
-    const handleKeyUp = (e) => {
-      if (e.key === "ArrowUp") setKeyPressed((prev) => ({ ...prev, up: false }));
-      if (e.key === "ArrowDown") setKeyPressed((prev) => ({ ...prev, down: false }));
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (e.key === "ArrowUp") keyPressedRef.current.up = false;
+      if (e.key === "ArrowDown") keyPressedRef.current.down = false;
     };
+
     window.addEventListener("keydown", handleKeyDown);
     window.addEventListener("keyup", handleKeyUp);
     return () => {
@@ -38,14 +43,13 @@ function Game() {
     };
   }, []);
 
-  // петля
-  
+  // Головна ігрова петля
   const loop = () => {
     // Рух гравця
-    if (keyPressed.up) playerPosRef.current = Math.max(playerPosRef.current - 4, 0);
-    if (keyPressed.down) playerPosRef.current = Math.min(playerPosRef.current + 4, 320);
+    if (keyPressedRef.current.up) playerPosRef.current = Math.max(playerPosRef.current - 4, 0);
+    if (keyPressedRef.current.down) playerPosRef.current = Math.min(playerPosRef.current + 4, 320);
 
-    // Рух AI
+    // AI рух
     const ballY = ballPosRef.current.y;
     if (ballY < aiPosRef.current + 30) aiPosRef.current = Math.max(aiPosRef.current - 2.5, 0);
     if (ballY > aiPosRef.current + 50) aiPosRef.current = Math.min(aiPosRef.current + 2.5, 320);
@@ -56,7 +60,6 @@ function Game() {
     x += dx;
     y += dy;
 
-    // Відскок від верху/низу
     if (y <= 0 || y >= 390) {
       dy = -dy;
       y = y <= 0 ? 1 : 389;
@@ -76,7 +79,7 @@ function Game() {
       dx = Math.sign(dx) * Math.min(Math.abs(dx) * 1.1, 10);
     }
 
-    // Гол
+    // Голи
     if (x <= 0) {
       dispatch(incrementAI());
       resetBall();
@@ -91,7 +94,7 @@ function Game() {
     animationRef.current = requestAnimationFrame(loop);
   };
 
-  const resetBall = () => {
+  const resetBall = (): void => {
     ballPosRef.current = { x: 300, y: 200 };
     ballSpeedRef.current = {
       dx: Math.random() > 0.5 ? 3 : -3,
@@ -99,27 +102,33 @@ function Game() {
     };
   };
 
-  // Старт 
+  // Старт анімації
   useEffect(() => {
     animationRef.current = requestAnimationFrame(loop);
-    return () => cancelAnimationFrame(animationRef.current);
-  }, [keyPressed]); 
+    return () => {
+      if (animationRef.current) cancelAnimationFrame(animationRef.current);
+    };
+  }, []);
 
-  // завершення гри
+  // Завершення гри
   useEffect(() => {
     if (score.player >= 3 || score.ai >= 3) {
       navigate("/result");
     }
   }, [score, navigate]);
 
-  // Ререндер 
-  const [, forceRender] = useState(0);
+  // Примусовий ререндер
+  const [, forceRender] = useState<number>(0);
   useEffect(() => {
-    const renderLoop = () => {
-      forceRender((prev) => prev + 1);
+    let last = 0;
+    const renderLoop = (timestamp: number) => {
+      if (timestamp - last >= 16) {
+        last = timestamp;
+        forceRender((prev) => prev + 1);
+      }
       requestAnimationFrame(renderLoop);
     };
-    renderLoop();
+    requestAnimationFrame(renderLoop);
   }, []);
 
   return (
@@ -137,6 +146,6 @@ function Game() {
       </div>
     </div>
   );
-}
+};
 
 export default Game;

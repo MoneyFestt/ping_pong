@@ -3,7 +3,7 @@ import Menu from "./pages/Menu";
 import Game from "./pages/Game";
 import Result from "./pages/Result";
 
-function App() {
+const App = (): JSX.Element => {
   return (
     <BrowserRouter>
       <Routes>
@@ -13,6 +13,6 @@ function App() {
       </Routes>
     </BrowserRouter>
   );
-}
+};
 
 export default App;

@@ -1,7 +1,12 @@
 import React from "react";
 import styles from "../styles/Paddle.module.css";
 
-function Paddle({ position, left }) {
+type PaddleProps = {
+  position: number;
+  left: boolean;
+};
+
+const Paddle: React.FC<PaddleProps> = ({ position, left }) => {
   return (
     <div
       className={styles.paddle}
@@ -11,6 +16,6 @@ function Paddle({ position, left }) {
       }}
     />
   );
-}
+};
 
 export default Paddle;
